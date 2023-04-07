@@ -51,7 +51,7 @@ func (c *OpenId) getState() (string, error) {
 }
 
 func (c *OpenId) getTimeStamp() string {
-	return time.Now().Format("2006.01.02 15:04:05 -07:00")
+	return time.Now().Format("2006.01.02 15:04:05 -0700")
 }
 
 func (c *OpenId) GetUrl() (string, error) {
