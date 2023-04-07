@@ -146,7 +146,11 @@ func (c *OpenId) GetTokenState(code string) (Token, error) {
 		"refresh_token": []string{state},
 	}
 	resp, err := http.PostForm(c.Config.PortalUrl+c.Config.TokenUrl, params)
-	defer resp.Body.Close()
+	defer func() {
+		if nil != resp && nil != resp.Body {
+			resp.Body.Close()
+		}
+	}()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return esiaToken, err
