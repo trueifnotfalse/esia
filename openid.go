@@ -119,18 +119,18 @@ func (c *OpenId) GetInfoByPath(path string, item interface{}) error {
 	return nil
 }
 
-func (c *OpenId) GetTokenState(code string) (Token, error) {
+func (c *OpenId) GetTokenState(code string) (*Token, error) {
 	var esiaToken Token
 	state, err := c.getState()
 	if err != nil {
-		return esiaToken, err
+		return &esiaToken, err
 	}
 
 	timestamp := c.getTimeStamp()
 	clientSecret := c.Config.Scope + timestamp + c.Config.MnemonicsSystem + state
 	clientSecret, err = c.sign(clientSecret)
 	if err != nil {
-		return esiaToken, err
+		return &esiaToken, err
 	}
 
 	params := url.Values{
@@ -146,6 +146,9 @@ func (c *OpenId) GetTokenState(code string) (Token, error) {
 		"refresh_token": []string{state},
 	}
 	resp, err := http.PostForm(c.Config.PortalUrl+c.Config.TokenUrl, params)
+	if nil != err {
+		return nil, err
+	}
 	defer func() {
 		if nil != resp && nil != resp.Body {
 			resp.Body.Close()
@@ -153,12 +156,12 @@ func (c *OpenId) GetTokenState(code string) (Token, error) {
 	}()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return esiaToken, err
+		return &esiaToken, err
 	}
 
 	err = json.Unmarshal(body, &esiaToken)
 	if err != nil {
-		return esiaToken, err
+		return &esiaToken, err
 	}
 
 	chunks := strings.Split(esiaToken.AccessToken, ".")
@@ -166,19 +169,19 @@ func (c *OpenId) GetTokenState(code string) (Token, error) {
 	if err != nil {
 		data, err = base64.URLEncoding.DecodeString(chunks[1] + "==")
 		if err != nil {
-			return esiaToken, err
+			return &esiaToken, err
 		}
 	}
 
 	err = json.Unmarshal([]byte(string(data)), &esiaToken.AuthCode)
 	if err != nil {
-		return esiaToken, err
+		return &esiaToken, err
 	}
 
 	c.Token = esiaToken.AccessToken
 	c.Oid = esiaToken.AuthCode.UrnEsiaSbjId
 
-	return esiaToken, nil
+	return &esiaToken, nil
 }
 
 func (c *OpenId) sign(message string) (string, error) {
