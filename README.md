@@ -3,21 +3,16 @@
 ```Golang
 Esia openId
 
-esiaOpenId := &esia.OpenId{  
-      Config: esia.ConfigOpenId{  
-              MnemonicsSystem:"000000",  
-              RedirectUrl:"https://site/esia",  
-              PortalUrl:"https://esia-portal1.test.gosuslugi.ru/",  
-              //PortalUrl:"https://esia.gosuslugi.ru/",  
-              PrivateKeyPath:"/path/to/esia_auth.key",  
-              PrivateKeyPassword:"",  
-              CertPath:"/path/to/esia_auth.pem",  
-              TmpPath:"/path/to/tmp",  
-              Scope:"fullname id_doc",  
-              CodeUrl :"aas/oauth2/ac",  
-              TokenUrl :"aas/oauth2/te",  
-      },  
-}
+signer := esia.NewCliSigner(&esia.CliSignerConfig{
+    CertPath:       "/path/to/esia_auth.pem",
+    PrivateKeyPath: "/path/to/esia_auth.key",
+})
+openId := esia.NewOpenId(&esia.OpenIdConfig{
+    MnemonicsSystem: "000000",
+    RedirectUrl:     "https://your-site/esia/callback",
+    PortalUrl:       "https://esia-portal1.test.gosuslugi.ru/",
+    Scope:           "fullname id_doc",
+}, signer)
 
 //Get auth url
 url, _ := esiaOpenId.GetUrl()
@@ -29,5 +24,4 @@ esiaOpenId.GetInfoByPath("", &person)
 //Get docs info
 var docs esia.EsiaDocs
 esiaOpenId.GetInfoByPath("/docs/" + fmt.Sprint(person.RIdDoc), &docs)
-
 ```
